@@ -1,48 +1,39 @@
-# NeuroDrive 360
+# NeuroDrive 360 – Agentic AI for Vehicle Health
 
-Research-oriented automotive predictive maintenance system combining agentic AI workflows with ML-based risk assessment and a Streamlit dashboard.
+An academic-style reference implementation for predictive maintenance using agentic AI, combining interpretable workflows with production-ready APIs and a Streamlit research dashboard.
 
 ## Problem Statement
-Vehicle fleets generate high-volume telematics data that must be assessed continuously for early fault detection. Manual triage is slow and inconsistent. NeuroDrive 360 automates diagnosis by validating sensor inputs, estimating failure risk, and recommending maintenance actions with transparent, inspectable reasoning.
+Modern vehicles emit continuous telematics streams (speed, engine temperature, vibration, battery voltage, mileage). Manual triage cannot scale to early fault detection across fleets. NeuroDrive 360 automates validation, diagnosis, and maintenance recommendation while preserving inspectability of intermediate reasoning steps.
 
-## Agentic AI Architecture
-- **LangGraph workflow:** `DataAgent → DiagnosisAgent → SchedulerAgent` executed by `MaintenanceWorkflow`.
-- **DataAgent:** Validates and cleans telematics payloads (speed, engine temperature, vibration, battery voltage, mileage).
-- **DiagnosisAgent:** Applies supervised and unsupervised models to estimate fault probability and anomaly score.
-- **SchedulerAgent:** Maps risk to recommended maintenance actions (LOW / MEDIUM / HIGH) and returns a consolidated agent state.
-- **APIs:** FastAPI service exposes `/health`, `/diagnosis`, and `/diagnosis/debug` (intermediate state streaming for research).
-- **UI:** Streamlit dashboard consumes the API, renders metrics, and highlights risk levels with contextual recommendations.
+## Agentic AI Architecture (DataAgent → DiagnosisAgent → SchedulerAgent)
+- **DataAgent:** Validates and normalizes telematics payloads to ensure schema compliance and plausible ranges.
+- **DiagnosisAgent:** Applies supervised and unsupervised models to generate fault probability and anomaly score.
+- **SchedulerAgent:** Converts model outputs into categorical risk levels (LOW / MEDIUM / HIGH) and prescribes maintenance actions.
+- **Orchestration:** Implemented with LangGraph (`MaintenanceWorkflow`), exposed through FastAPI endpoints `/health`, `/diagnosis`, and `/diagnosis/debug` (intermediate state streaming for research). Streamlit consumes these endpoints for interactive analysis.
 
-## Technologies Used
-- FastAPI, Uvicorn (backend service)
-- Streamlit (dashboard; Hugging Face Spaces entrypoint `app.py`)
-- LangGraph (agentic workflow orchestration)
-- XGBoost, Scikit-learn, Joblib (ML models and persistence)
-- Pandas, NumPy (data processing)
+## Machine Learning Models & Evaluation
+- **Fault probability:** Gradient-boosted trees (`xgboost_classifier.pkl`) trained on labeled telematics to estimate supervised risk.
+- **Anomaly score:** Isolation Forest (`isolation_forest.pkl`) with companion scaler (`isolation_forest_scaler.pkl`) to detect distributional shifts.
+- **Risk mapping:** Combines fault probability and anomaly score into discrete risk levels driving downstream recommendations.
+- **Validation checks:** Workflow enforces presence of required fields and completeness of returned agent state to prevent partial or inconsistent outputs.
 
-## ML Models & Evaluation
-- **Fault probability:** Gradient-boosted trees (`xgboost_classifier.pkl`) trained on labeled telematics for supervised risk estimation.
-- **Anomaly score:** Isolation Forest (`isolation_forest.pkl`) with fitted scaler (`isolation_forest_scaler.pkl`) for unsupervised anomaly detection.
-- **Risk mapping:** Combines fault probability and anomaly score into categorical risk levels (LOW / MEDIUM / HIGH) used by the scheduler.
-- **Validation:** Workflow enforces presence of required fields and checks completeness of returned agent state to ensure reliable responses.
-
-## Demo Scenarios (LOW / MED / HIGH)
-- **LOW:** Nominal inputs (e.g., speed ≈ 90 km/h, engine temp ≈ 90°C, vibration ≈ 3 g, voltage ≈ 12.8 V, mileage ≈ 50k) → low fault probability and anomaly score; green indicator.
-- **MED:** Mild deviations (e.g., higher engine temp ≈ 110°C or vibration ≈ 7 g) → moderate risk; amber indicator with precautionary action.
-- **HIGH:** Severe anomalies (e.g., vibration > 12 g, voltage < 11 V, elevated temperature) → high fault probability/anomaly; red indicator and urgent maintenance recommendation.
+## Demo Scenarios (LOW / MEDIUM / HIGH)
+- **LOW:** Near-nominal readings (e.g., engine temperature ≈ 90°C, vibration ≈ 3 g, voltage ≈ 12.8 V, mileage ≈ 50k) yield low fault probability and anomaly scores.
+- **MEDIUM:** Moderate deviations (e.g., engine temperature ≈ 110°C or vibration ≈ 7 g) elevate risk and trigger precautionary actions.
+- **HIGH:** Severe anomalies (e.g., vibration > 12 g, voltage < 11 V, elevated temperature) produce high risk and urgent maintenance recommendations.
 
 ## How to Run Locally
-1. **Environment:** Python 3.10 recommended.
-2. **Install dependencies:** `pip install -r requirements.txt`
-3. **Start backend:** `uvicorn app.main:app --host 0.0.0.0 --port 8000`
-4. **Launch dashboard:** `streamlit run app.py`
-5. **Configure backend URL (optional):** set `BACKEND_URL` to target a remote API; defaults to `http://localhost:8000` for local runs.
+1. Use Python 3.10.
+2. Install dependencies: `pip install -r requirements.txt`
+3. Start the FastAPI backend: `uvicorn app.main:app --host 0.0.0.0 --port 8000`
+4. Launch the Streamlit dashboard: `streamlit run app.py`
+5. Optional: set `BACKEND_URL` to point the dashboard at a remote API; defaults to `http://localhost:8000` for local development.
 
-## Deployment (HuggingFace Spaces)
-- Spaces Streamlit app entrypoint is `app.py`, which imports and runs `streamlit_app.dashboard.main`.
-- Set `BACKEND_URL` secret/variable to point the dashboard to the deployed FastAPI service.
-- Ensure model artifacts in `models/` are available to the backend container.
+## HuggingFace Deployment
+- Streamlit entrypoint: `app.py` at the repository root imports and runs `streamlit_app.dashboard.main`.
+- Configure the environment variable `BACKEND_URL` in the Space to target the deployed FastAPI service.
+- Ensure required model artifacts in `models/` are present in the backend environment.
 
-## Author
+## Author Information
 NeuroDrive 360 Engineering Team
 
