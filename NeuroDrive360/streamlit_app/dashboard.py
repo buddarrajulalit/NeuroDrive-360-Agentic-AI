@@ -4,6 +4,7 @@ This dashboard provides an interactive interface for vehicle health diagnosis
 using ML-powered predictive maintenance models.
 """
 
+import os
 import streamlit as st
 import requests
 import json
@@ -18,8 +19,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# API endpoint
-API_BASE_URL = "http://localhost:8000"
+# API endpoint (configurable via env for HF Spaces/local)
+API_BASE_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
 DIAGNOSIS_ENDPOINT = f"{API_BASE_URL}/diagnosis"
 HEALTH_ENDPOINT = f"{API_BASE_URL}/health"
 
