@@ -35,5 +35,7 @@ Modern vehicles emit continuous telematics streams (speed, engine temperature, v
 - Ensure required model artifacts in `models/` are present in the backend environment.
 
 ## Author Information
-NeuroDrive 360 Engineering Team
+Buddarraju Lalit
+B.Tech 3rd year
+
 
